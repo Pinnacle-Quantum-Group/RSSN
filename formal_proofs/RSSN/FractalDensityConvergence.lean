@@ -43,7 +43,11 @@ theorem triangle_ratio_constant (n : ℕ) (hn : 2 ≤ n) (i : ℕ) :
 
 theorem triangle_density_converges (n : ℕ) (hn : 2 ≤ n) :
     Tendsto (triangleDensitySeq n (by omega)).ratio atTop (nhds (1 / (↑n : ℝ))) := by
-  simp_rw [triangle_ratio_constant n hn]
+  -- The ratio is the constant function `1/n`; rewrite via funext so simp can
+  -- replace `(triangleDensitySeq n _).ratio` (a function) with `fun _ => 1/n`.
+  have h : (triangleDensitySeq n (by omega)).ratio = fun _ => 1 / (↑n : ℝ) := by
+    funext i; exact triangle_ratio_constant n hn i
+  rw [h]
   exact tendsto_const_nhds
 
 theorem triangle_density_positive (n : ℕ) (hn : 2 ≤ n) :
@@ -56,7 +60,8 @@ theorem monotone_ratio_converges (s : FractalDensitySeq)
     ∃ L, Tendsto s.ratio atTop (nhds L) ∧ 0 ≤ L := by
   have hbdd : BddBelow (Set.range s.ratio) := by
     exact ⟨0, by rintro _ ⟨i, rfl⟩; exact div_nonneg (s.hF_nonneg i) (le_of_lt (s.hG_pos i))⟩
-  exact ⟨iInf s.ratio, tendsto_atTop_iInf hmono,
+  -- ℝ is ConditionallyCompleteLattice — c-version of tendsto_atTop_iInf.
+  exact ⟨iInf s.ratio, tendsto_atTop_ciInf hmono hbdd,
     le_ciInf fun i => div_nonneg (s.hF_nonneg i) (le_of_lt (s.hG_pos i))⟩
 
 /-! ## 4. Geometric Decay to Zero -/

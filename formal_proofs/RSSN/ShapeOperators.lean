@@ -31,7 +31,10 @@ theorem triangle_four : triangle 4 = 256 := by
 
 theorem triangle_ge_n (n : ℕ) (hn : 1 ≤ n) : n ≤ triangle n := by
   unfold triangle
-  exact le_self_pow (by omega) n
+  -- n ≤ n^n. Mathlib v4.5.0: `Nat.le_self_pow` takes `n ≠ 0` (exponent),
+  -- not `1 ≤ n`. Also valid: `n^1 ≤ n^n` via `Nat.pow_le_pow_right`.
+  calc n = n ^ 1 := (pow_one n).symm
+    _ ≤ n ^ n := Nat.pow_le_pow_right hn hn
 
 /-! ## 2. Iterated Triangle -/
 
@@ -51,15 +54,15 @@ theorem triangleIter_succ (k n : ℕ) :
 def square (n : ℕ) : ℕ := triangleIter n n
 
 theorem square_two : square 2 = 256 := by
-  unfold square triangleIter triangle
-  norm_num
+  -- square 2 = triangleIter 2 2 = triangle (triangle 2) = triangle 4 = 256.
+  show triangleIter 2 2 = 256
+  rfl
 
 theorem square_ge_triangle (n : ℕ) (hn : 2 ≤ n) : triangle n ≤ square n := by
-  unfold square
-  induction n with
-  | zero => omega
-  | succ m =>
-    sorry
+  -- square n = triangleIter n n. For n ≥ 2, triangleIter 1 n = triangle n,
+  -- and triangleIter is monotone in iteration count when arg ≥ 2.
+  -- Full proof requires monotonicity-of-iteration; stub for now.
+  sorry
 
 /-! ## 4. Circle: Square^n(n) -/
 
@@ -83,7 +86,10 @@ theorem growth_hierarchy (n : ℕ) (hn : 2 ≤ n) :
 theorem triangle_strict_mono {a b : ℕ} (ha : 2 ≤ a) (hab : a < b) :
     triangle a < triangle b := by
   unfold triangle
-  calc a ^ a < a ^ b := Nat.pow_lt_pow_right (by omega) hab
-    _ ≤ b ^ b := Nat.pow_le_pow_left (by omega) (by omega)
+  -- a^a < a^b ≤ b^b. v4.5.0: `Nat.pow_lt_pow_right` doesn't exist; the
+  -- generic `pow_lt_pow_right` resolves via the ℕ ordered semiring instance.
+  have hb : 2 ≤ b := ha.trans hab.le
+  calc a ^ a < a ^ b := pow_lt_pow_right (show (1:ℕ) < a by omega) hab
+    _ ≤ b ^ b := Nat.pow_le_pow_left hab.le b
 
 end RSSN.ShapeOperators

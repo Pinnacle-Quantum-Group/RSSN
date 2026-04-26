@@ -25,13 +25,24 @@ def f₃ (n : ℕ) : ℕ := (fun m => 2 ^ m * m)^[n] n
 
 def triangle (n : ℕ) : ℕ := n ^ n
 
-/-! ## L3.3 — Corrected Placement: Triangle(n) < f₃(n) for n ≥ 4 -/
+/-! ## L3.3 — Corrected Placement: Triangle(n) < f₃(n) for n ≥ 4
+
+  NOTE: For n ≥ 3, `f₃ n` involves iterating `m ↦ 2^m · m` `n` times,
+  which produces astronomically large numbers (`f₃ 3` ≈ 2^(4×10⁸) · 4×10⁸,
+  i.e., ~120-million-digit number; `f₃ 4` ≈ 2^(2^64 · 64) · …).
+  `native_decide` cannot compute these: kernel/GMP would OOM.
+
+  The `n = 2` case is concrete (`f₃ 2 = 2048 > 4 = triangle 2`) and
+  serves as a sanity check; n ≥ 3 cases require a structural bound
+  proof (via monotonicity of iteration), stubbed below. -/
 
 theorem triangle_4_lt_f3_4 : triangle 4 < f₃ 4 := by
-  native_decide
+  -- f₃ 4 is too large for native_decide; structural bound needed.
+  sorry
 
 theorem triangle_lt_f3_at_3 : triangle 3 < f₃ 3 := by
-  native_decide
+  -- f₃ 3 ≈ 2^(4×10⁸); structural bound needed.
+  sorry
 
 theorem triangle_2_eq : triangle 2 = 4 := by
   unfold triangle; norm_num
@@ -73,11 +84,14 @@ theorem L3_1_abel_iteration (af : AbelFunction) (n : ℕ) (x : ℝ) :
     af.A (af.T^[n] x) = af.A x + ↑n := by
   induction n with
   | zero => simp
-  | succ k ih => simp [Function.iterate_succ', af.abel_eq, ih]; ring
+  | succ k ih =>
+    -- T^[k+1] x = T (T^[k] x); apply abel_eq once, then ih.
+    rw [Function.iterate_succ', Function.comp_apply, af.abel_eq, ih]
+    push_cast; ring
 
 /-! ## L3.2 — Fractional Iteration via Abel Function -/
 
-def fractionalIterate (af : AbelFunction) (α : ℝ) (x : ℝ) : ℝ :=
+noncomputable def fractionalIterate (af : AbelFunction) (α : ℝ) (x : ℝ) : ℝ :=
   Function.invFun af.A (af.A x + α)
 
 theorem L3_2_integer_iteration_consistent (af : AbelFunction)
@@ -89,6 +103,7 @@ theorem L3_2_integer_iteration_consistent (af : AbelFunction)
 
 theorem hierarchy_summary :
     triangle 2 = 4 ∧ triangle 3 = 27 ∧ triangle 4 = 256 := by
-  unfold triangle; norm_num; exact ⟨rfl, rfl, rfl⟩
+  -- All three are concrete; `unfold` + `norm_num` discharges the conjunction.
+  refine ⟨?_, ?_, ?_⟩ <;> (unfold triangle; norm_num)
 
 end RSSN.HierarchyPlacement
