@@ -56,7 +56,8 @@ theorem monotone_ratio_converges (s : FractalDensitySeq)
     ∃ L, Tendsto s.ratio atTop (nhds L) ∧ 0 ≤ L := by
   have hbdd : BddBelow (Set.range s.ratio) := by
     exact ⟨0, by rintro _ ⟨i, rfl⟩; exact div_nonneg (s.hF_nonneg i) (le_of_lt (s.hG_pos i))⟩
-  exact ⟨iInf s.ratio, tendsto_atTop_iInf hmono,
+  -- ℝ is ConditionallyCompleteLattice — c-version of tendsto_atTop_iInf.
+  exact ⟨iInf s.ratio, tendsto_atTop_ciInf hmono hbdd,
     le_ciInf fun i => div_nonneg (s.hF_nonneg i) (le_of_lt (s.hG_pos i))⟩
 
 /-! ## 4. Geometric Decay to Zero -/

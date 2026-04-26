@@ -51,7 +51,7 @@ theorem B1_constant_field_zero_alpha (c : ℝ) (hc : 0 < c) (hc1 : c ≤ 1) :
 
 theorem B2_triangle_as_exp (n : ℕ) (hn : 0 < n) :
     (↑n : ℝ) ^ (n : ℕ) = exp (↑n * log ↑n) := by
-  rw [← rpow_natCast (↑n : ℝ) n]
+  rw [← rpow_nat_cast (↑n : ℝ) n]
   rw [rpow_def_of_pos (Nat.cast_pos.mpr hn)]
   congr 1; push_cast; ring
 
@@ -65,7 +65,7 @@ theorem B2_weight_positive (n : ℕ) (hn : 2 ≤ n) :
 theorem B2_grade1_scaling (n : ℕ) (hn : 0 < n) :
     exp (1 * triangleWeight n * ↑n) = (↑n : ℝ) ^ (n : ℕ) := by
   unfold triangleWeight
-  rw [one_mul, ← rpow_natCast (↑n : ℝ) n, rpow_def_of_pos (Nat.cast_pos.mpr hn)]
+  rw [one_mul, ← rpow_nat_cast (↑n : ℝ) n, rpow_def_of_pos (Nat.cast_pos.mpr hn)]
   congr 1; push_cast; ring
 
 /-! ## B.1 + B.2 Combined: Density Gradient = Bracket Twist -/

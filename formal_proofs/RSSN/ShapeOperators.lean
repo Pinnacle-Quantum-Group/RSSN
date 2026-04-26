@@ -83,7 +83,7 @@ theorem growth_hierarchy (n : ℕ) (hn : 2 ≤ n) :
 theorem triangle_strict_mono {a b : ℕ} (ha : 2 ≤ a) (hab : a < b) :
     triangle a < triangle b := by
   unfold triangle
-  calc a ^ a < a ^ b := Nat.pow_lt_pow_right (by omega) hab
+  calc a ^ a < a ^ b := pow_lt_pow_right (by omega) hab
     _ ≤ b ^ b := Nat.pow_le_pow_left (by omega) (by omega)
 
 end RSSN.ShapeOperators
