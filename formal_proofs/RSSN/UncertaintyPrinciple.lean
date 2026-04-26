@@ -45,6 +45,8 @@ theorem L8_2_robertson_trivial_when_commuting (op : OperatorPair)
     robertsonBound op := by
   unfold robertsonBound
   rw [hcomm, abs_zero, mul_zero, sq]
+  -- Goal: op.variance₁ * op.variance₂ ≥ 0 * 0. Rewrite RHS to 0.
+  rw [mul_zero]
   exact mul_nonneg op.h_var₁ op.h_var₂
 
 /-! ## Application to RSSN Shape Operators -/

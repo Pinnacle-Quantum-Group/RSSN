@@ -10,7 +10,7 @@
 import Mathlib
 
 noncomputable section
-open Real Filter Topology
+open Real Filter Topology BigOperators  -- BigOperators needed for `∑`
 
 namespace RSSN.BridgeLemmas
 
@@ -66,7 +66,8 @@ theorem B2_grade1_scaling (n : ℕ) (hn : 0 < n) :
     exp (1 * triangleWeight n * ↑n) = (↑n : ℝ) ^ (n : ℕ) := by
   unfold triangleWeight
   rw [one_mul, ← rpow_nat_cast (↑n : ℝ) n, rpow_def_of_pos (Nat.cast_pos.mpr hn)]
-  congr 1; push_cast; ring
+  -- After `rw`, goal is `exp (log ↑n * ↑n) = exp (↑n * log ↑n)` — closed by `mul_comm`.
+  congr 1; ring
 
 /-! ## B.1 + B.2 Combined: Density Gradient = Bracket Twist -/
 

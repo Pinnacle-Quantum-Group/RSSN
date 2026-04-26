@@ -84,11 +84,14 @@ theorem L3_1_abel_iteration (af : AbelFunction) (n : ℕ) (x : ℝ) :
     af.A (af.T^[n] x) = af.A x + ↑n := by
   induction n with
   | zero => simp
-  | succ k ih => simp [Function.iterate_succ', af.abel_eq, ih]; ring
+  | succ k ih =>
+    -- T^[k+1] x = T (T^[k] x); apply abel_eq once, then ih.
+    rw [Function.iterate_succ', Function.comp_apply, af.abel_eq, ih]
+    push_cast; ring
 
 /-! ## L3.2 — Fractional Iteration via Abel Function -/
 
-def fractionalIterate (af : AbelFunction) (α : ℝ) (x : ℝ) : ℝ :=
+noncomputable def fractionalIterate (af : AbelFunction) (α : ℝ) (x : ℝ) : ℝ :=
   Function.invFun af.A (af.A x + α)
 
 theorem L3_2_integer_iteration_consistent (af : AbelFunction)
@@ -100,6 +103,7 @@ theorem L3_2_integer_iteration_consistent (af : AbelFunction)
 
 theorem hierarchy_summary :
     triangle 2 = 4 ∧ triangle 3 = 27 ∧ triangle 4 = 256 := by
-  unfold triangle; norm_num; exact ⟨rfl, rfl, rfl⟩
+  -- All three are concrete; `unfold` + `norm_num` discharges the conjunction.
+  refine ⟨?_, ?_, ?_⟩ <;> (unfold triangle; norm_num)
 
 end RSSN.HierarchyPlacement
