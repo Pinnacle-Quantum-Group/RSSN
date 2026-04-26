@@ -25,13 +25,24 @@ def f₃ (n : ℕ) : ℕ := (fun m => 2 ^ m * m)^[n] n
 
 def triangle (n : ℕ) : ℕ := n ^ n
 
-/-! ## L3.3 — Corrected Placement: Triangle(n) < f₃(n) for n ≥ 4 -/
+/-! ## L3.3 — Corrected Placement: Triangle(n) < f₃(n) for n ≥ 4
+
+  NOTE: For n ≥ 3, `f₃ n` involves iterating `m ↦ 2^m · m` `n` times,
+  which produces astronomically large numbers (`f₃ 3` ≈ 2^(4×10⁸) · 4×10⁸,
+  i.e., ~120-million-digit number; `f₃ 4` ≈ 2^(2^64 · 64) · …).
+  `native_decide` cannot compute these: kernel/GMP would OOM.
+
+  The `n = 2` case is concrete (`f₃ 2 = 2048 > 4 = triangle 2`) and
+  serves as a sanity check; n ≥ 3 cases require a structural bound
+  proof (via monotonicity of iteration), stubbed below. -/
 
 theorem triangle_4_lt_f3_4 : triangle 4 < f₃ 4 := by
-  native_decide
+  -- f₃ 4 is too large for native_decide; structural bound needed.
+  sorry
 
 theorem triangle_lt_f3_at_3 : triangle 3 < f₃ 3 := by
-  native_decide
+  -- f₃ 3 ≈ 2^(4×10⁸); structural bound needed.
+  sorry
 
 theorem triangle_2_eq : triangle 2 = 4 := by
   unfold triangle; norm_num
