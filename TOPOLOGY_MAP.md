@@ -157,14 +157,14 @@ A4 (Recursive Invariance) --> RLA-T7 (Conservation) [TIGHT]
 
 | ID | Name | Status | Dependencies | Falsifiability Test |
 |----|------|--------|--------------|---------------------|
-| FTC-T3 | Curvature Convergence | **[PARTIALLY TIGHT]** | Ax.8, Ax.2 | Option B (Ricci flow) tight; limit open |
+| FTC-T3 | Curvature Convergence | **[TIGHT]** | Ax.8, Ax.2 | L3.2a (uniform Cauchy on compact K under Lipschitz) closes the gap |
 | FTC-T4 | Singularity Resolution | **[TIGHT]** (for BH) | Ax.2, Ax.8, Ax.9 | R^(n*) diverges at BH singularity |
 | FTC-T6 | Entropy = Bekenstein | **[TIGHT]** | FTC-T4 | S_recursive at eta=1 != 2*pi nats |
 
 ### 4.2 FTC Dependency Graph
 
 ```
-Ax.2 (Fractal Density) -------+----> FTC-T3 (Curvature) [PARTIALLY TIGHT]
+Ax.2 (Fractal Density) -------+----> FTC-T3 (Curvature) [TIGHT]
 Ax.8 (Recursive Curvature) ---+              |
                                               v
 Ax.9 (Recursive Einstein) -----------> FTC-T4 (Singularity) [TIGHT for BH]
@@ -219,7 +219,7 @@ Ax.9 (Recursive Einstein) -----------> FTC-T4 (Singularity) [TIGHT for BH]
                     FTC (Physics Layer)
                     ==============================
                     FTC-T3 -------> FTC-T4 -------> FTC-T6
-                   [P.TIGHT]       [TIGHT/BH]      [TIGHT]
+                    [TIGHT]        [TIGHT/BH]      [TIGHT]
 ```
 
 ---
@@ -242,6 +242,6 @@ Ax.9 (Recursive Einstein) -----------> FTC-T4 (Singularity) [TIGHT for BH]
 |---|-----|----------|--------|
 | 1 | Cauchy condition for D_k(n) | HIGH | **CLOSED** by RSF Ax.9 |
 | 2 | Density ordering vs cardinality | CRITICAL | **CLOSED** |
-| 3 | Pointwise vs uniform curvature | MEDIUM | **RESOLVED** via Option B |
+| 3 | Pointwise vs uniform curvature | MEDIUM | **CLOSED** via L3.2a (uniform Cauchy on compact K under Lipschitz) |
 | 4 | Uncertainty principle form | MEDIUM | **PARTIALLY RESOLVED** |
 | 5 | Con(ZFC) from computation | LOW | **OPEN** |
