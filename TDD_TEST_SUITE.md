@@ -32,7 +32,7 @@ One test per theorem, stated precisely enough for independent execution.
 
 | ID | Theorem | Falsifiability Condition | Expected Outcome | Status |
 |----|---------|--------------------------|------------------|--------|
-| F-FTC-T3 | Curvature Convergence | Construct compact K where R^(n) diverges | Option B (fixed scale via Ricci flow) converges | **PASS (Option B)** |
+| F-FTC-T3 | Curvature Convergence | Construct compact K where R^(n) diverges | L3.2a: Lipschitz on compact K => uniform Cauchy convergence | **PASS (L3.2a closed)** |
 | F-FTC-T4 | Singularity Resolution | Compute R^(n*) at BH singularity; show divergence | R^(n*) -> 0 (super-exponential decay). Singularity replaced. | **PASS (BH)** |
 | F-FTC-T6 | Entropy = Bekenstein | Compute S_recursive at eta=1; show != 2*pi | S = e^pi * e^{-pi} * pi + pi = 2*pi nats exactly | **PASS** |
 
@@ -59,7 +59,7 @@ One test per theorem, stated precisely enough for independent execution.
 |----|-----|------|--------|
 | G1 | T1 Cauchy | Bounded oscillating sequence | Confirms gap exists; RSF Ax.9 closes it |
 | G2 | Cardinality | Density bijection attempt | Density independent of cardinality. CLOSED. |
-| G3 | Uniform curvature | x-dependent R on compact set | Rate varies with R; Option B resolves. RESOLVED. |
+| G3 | Uniform curvature | x-dependent R on compact set | Rate varies with R; L3.2a closes uniform Cauchy on compact K under Lipschitz. CLOSED. |
 | G4 | Uncertainty | Scalar commutation test | Scalars commute; Robertson form works. PARTIALLY RESOLVED. |
 | G5 | Con(ZFC) | Pathology class mapping | A-C covered; D (large cardinals) OPEN. |
 
