@@ -65,10 +65,9 @@ theorem B2_weight_positive (n : ℕ) (hn : 2 ≤ n) :
 theorem B2_grade1_scaling (n : ℕ) (hn : 0 < n) :
     exp (1 * triangleWeight n * ↑n) = (↑n : ℝ) ^ (n : ℕ) := by
   unfold triangleWeight
+  -- After this rewrite chain LHS = RHS literally; the rewrite closes the
+  -- goal automatically. Adding `congr 1` would error with "no goals".
   rw [one_mul, ← rpow_nat_cast (↑n : ℝ) n, rpow_def_of_pos (Nat.cast_pos.mpr hn)]
-  -- `congr 1` already closes by reflexivity after the rewrite chain;
-  -- the trailing `ring` would error with "no goals to be solved".
-  congr 1
 
 /-! ## B.1 + B.2 Combined: Density Gradient = Bracket Twist -/
 

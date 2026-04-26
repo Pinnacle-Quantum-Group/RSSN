@@ -57,10 +57,17 @@ lemma tet_ge_one {a : ℕ} (ha : 1 ≤ a) (k : ℕ) : 1 ≤ tet a k := tet_pos h
 
 lemma nat_lt_pow_self {a : ℕ} (ha : 2 ≤ a) :
     ∀ {n : ℕ}, 1 ≤ n → n < a ^ n := by
-  intro n hn
+  -- Intro `n` explicitly (it's an implicit binder in the goal).
+  -- Don't `intro hn` first: the eliminator reverts dependent hypotheses,
+  -- so `hn` ends up in the goal as an implication. Intro per branch.
+  intro n
   induction n with
-  | zero => exfalso; omega
+  | zero =>
+    intro hn
+    -- hn : 1 ≤ 0 is decidably False.
+    exact absurd hn (by decide)
   | succ k ih =>
+    intro _
     rcases Nat.eq_zero_or_pos k with hk | hk
     · subst hk
       -- Goal: 1 < a^1 = a; ha : 2 ≤ a closes it.
@@ -75,12 +82,13 @@ lemma nat_lt_pow_self {a : ℕ} (ha : 2 ≤ a) :
 
 /-! ## 4. Height Monotonicity (Strict, for base ≥ 2) -/
 
-lemma tet_lt_tet_succ {a : ℕ} (ha : 2 ≤ a) {k : ℕ} (hk : 1 ≤ k) :
+lemma tet_lt_tet_succ {a : ℕ} (ha : 2 ≤ a) {k : ℕ} (_hk : 1 ≤ k) :
     tet a k < tet a (k + 1) := by
   show tet a k < a ^ tet a k
-  apply nat_lt_pow_self ha
-  -- Need: 1 ≤ tet a k. From tet_pos with a ≥ 2.
-  exact tet_ge_one (by omega) k
+  -- The premise `1 ≤ k` isn't strictly needed (the bound holds for k=0 too
+  -- since tet a 0 = 1 < a), but we keep it to match the callsite's
+  -- semantic intent. `nat_lt_pow_self` infers n from the goal type.
+  exact nat_lt_pow_self ha (tet_ge_one (by omega) k)
 
 lemma tet_strict_mono_height {a : ℕ} (ha : 2 ≤ a) :
     ∀ {m n : ℕ}, 1 ≤ m → m ≤ n → tet a m ≤ tet a n := by
