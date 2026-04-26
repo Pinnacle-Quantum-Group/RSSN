@@ -131,6 +131,15 @@ def triangleIter : ℕ → ℕ → ℕ
 @[simp] lemma triangleIter_succ (k n : ℕ) :
     triangleIter (k + 1) n = triangle (triangleIter k n) := rfl
 
+/-- Mark `triangleIter` irreducible for the kernel.
+    Without this, instantiating proofs at concrete `(k, n) = (3, 4)`
+    causes the kernel to normalize `triangleIter 3 4` →
+    `(256^256)^(256^256)`, which overflows Nat.pow and triggers
+    "INTERNAL PANIC: Nat.pow exponent is too big".
+    The simp lemmas above (proven by `rfl` while still reducible)
+    let downstream proofs step through it explicitly. -/
+attribute [irreducible] triangleIter
+
 /-- All iterates stay ≥ n (and hence ≥ 2 if n ≥ 2). -/
 lemma triangleIter_ge_arg {n : ℕ} (hn : 2 ≤ n) :
     ∀ k, n ≤ triangleIter k n := by
