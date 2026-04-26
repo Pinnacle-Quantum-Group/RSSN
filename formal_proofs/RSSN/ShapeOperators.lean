@@ -86,9 +86,10 @@ theorem growth_hierarchy (n : ℕ) (hn : 2 ≤ n) :
 theorem triangle_strict_mono {a b : ℕ} (ha : 2 ≤ a) (hab : a < b) :
     triangle a < triangle b := by
   unfold triangle
-  -- a^a < a^b ≤ b^b (use Nat-specific lemmas to avoid typeclass ambiguity).
+  -- a^a < a^b ≤ b^b. v4.5.0: `Nat.pow_lt_pow_right` doesn't exist; the
+  -- generic `pow_lt_pow_right` resolves via the ℕ ordered semiring instance.
   have hb : 2 ≤ b := ha.trans hab.le
-  calc a ^ a < a ^ b := Nat.pow_lt_pow_right ha hab
+  calc a ^ a < a ^ b := pow_lt_pow_right (show (1:ℕ) < a by omega) hab
     _ ≤ b ^ b := Nat.pow_le_pow_left hab.le b
 
 end RSSN.ShapeOperators

@@ -59,7 +59,7 @@ lemma nat_lt_pow_self {a : ℕ} (ha : 2 ≤ a) :
     ∀ {n : ℕ}, 1 ≤ n → n < a ^ n := by
   intro n hn
   induction n with
-  | zero => omega
+  | zero => exfalso; omega
   | succ k ih =>
     rcases Nat.eq_zero_or_pos k with hk | hk
     · subst hk
@@ -87,23 +87,16 @@ lemma tet_strict_mono_height {a : ℕ} (ha : 2 ≤ a) :
   intro m n hm hmn
   induction hmn with
   | refl => exact le_refl _
-  | step _ ih => exact ih.trans (tet_lt_tet_succ ha (hm.trans (by omega))).le
-
-lemma tet_lt_tet_of_lt {a : ℕ} (ha : 2 ≤ a) {m n : ℕ} (hm : 1 ≤ m) (hmn : m < n) :
-    tet a m < tet a n := by
-  -- m < n means m+1 ≤ n; chain `tet a m < tet a (m+1) ≤ tet a n`.
-  have step1 : tet a m < tet a (m + 1) := tet_lt_tet_succ ha hm
-  have step2 : tet a (m + 1) ≤ tet a n :=
-    tet_strict_mono_height ha (by omega) hmn
-  exact step1.trans_le step2
+  | step h ih =>
+    -- Bind the underscored hyp `h : m ≤ n'` so omega can see it.
+    exact ih.trans (tet_lt_tet_succ ha (hm.trans h)).le
 
 /-! ## 5. tet a k > a for k ≥ 2, a ≥ 2 -/
 
 lemma a_lt_tet_two {a : ℕ} (ha : 2 ≤ a) : a < tet a 2 := by
   rw [tet_two]
-  -- a = a^1 < a^a via Nat.pow_lt_pow_right
-  calc a = a ^ 1 := (pow_one a).symm
-    _ < a ^ a := Nat.pow_lt_pow_right ha ha
+  -- a < a^a — direct via `nat_lt_pow_self`, which is exactly this fact.
+  exact nat_lt_pow_self ha (by omega)
 
 lemma a_lt_tet {a : ℕ} (ha : 2 ≤ a) {k : ℕ} (hk : 2 ≤ k) : a < tet a k := by
   -- a < tet a 2 ≤ tet a k by height monotonicity.
@@ -146,11 +139,13 @@ lemma triangleIter_ge_arg {n : ℕ} (hn : 2 ≤ n) :
 lemma triangle_strict_mono {x y : ℕ} (hx : 2 ≤ x) (hxy : x < y) :
     triangle x < triangle y := by
   unfold triangle
-  -- x^x < y^y. Use x^x < y^x ≤ y^y.
+  -- x^x < y^y. Use x^x ≤ y^x < y^y.
   have hy : 2 ≤ y := hx.trans hxy.le
+  -- v4.5.0: `Nat.pow_lt_pow_right` is unknown; use generic `pow_lt_pow_right`
+  -- (resolves via the StrictOrderedSemiring instance on ℕ).
   calc x ^ x
       ≤ y ^ x := Nat.pow_le_pow_left hxy.le x
-    _ < y ^ y := Nat.pow_lt_pow_right hy hxy
+    _ < y ^ y := pow_lt_pow_right (show (1:ℕ) < y by omega) hxy
 
 /-- For `n ≥ 2`, iterating `triangle` strictly grows.
     Source of non-commutativity for the Triangle/Square ladder. -/
