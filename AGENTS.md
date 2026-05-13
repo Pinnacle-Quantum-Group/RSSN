@@ -5,6 +5,12 @@ across the five PQG repositories. Read this once, then go to the per-repo
 docs. This document explains *the combined work*: what each repo is, how the
 pieces fit, and where the load-bearing results live.
 
+**Path convention.** Paths prefixed with a repo name (e.g. `FIL/...`,
+`FTC/...`) refer to files in that *other* repo and only resolve if you
+have those sibling repos checked out alongside this one. Paths without a
+repo prefix (e.g. `LEMMA_DERIVATIONS.md`, `formal_proofs/...`) are relative
+to the root of *this* repo (RSSN).
+
 **Repositories covered (all on branch `claude/create-agent-docs-UaR9V`):**
 
 | Repo  | Name                                  | Role in the stack                        |
@@ -249,10 +255,10 @@ silently — stub them and link to a follow-up issue.
 These live in **RSSN** and are referenced from `CROSS_REFERENCE.md` in each
 other repo:
 
-- `RSSN/LEMMA_DERIVATIONS.md` — the master lemma graph across all 5 repos.
-- `RSSN/TDD_TEST_SUITE.md` — Python lemma tests (`tests/test_*_lemmas.py`).
-- `RSSN/TOPOLOGY_MAP.md` — which results depend on which.
-- `RSSN/PUBLICATION_ROADMAP.md` — phasing for the publication track. RLA is
+- `LEMMA_DERIVATIONS.md` — the master lemma graph across all 5 repos.
+- `TDD_TEST_SUITE.md` — Python lemma tests (`tests/test_*_lemmas.py`).
+- `TOPOLOGY_MAP.md` — which results depend on which.
+- `PUBLICATION_ROADMAP.md` — phasing for the publication track. RLA is
   the recommended parallel Phase-1 publication: self-contained, no
   dependencies on the other PQG papers, and it's what enables Bridge B.1.
 
@@ -337,13 +343,13 @@ These are the recurring mistakes across the framework. Memorize them.
 | Need to…                                                  | Go to                                          |
 |-----------------------------------------------------------|------------------------------------------------|
 | Understand the axiomatic ground                           | `RSF/README.md` §Axioms 1–9                    |
-| Look up a shape operator or `D_k(n)`                      | `RSSN/README.md` §2–§3                         |
+| Look up a shape operator or `D_k(n)`                      | `README.md` §2–§3                              |
 | Cite the twisted bracket or Witt limit                    | `RLA/README.md` §4, §8; `RLA/AppendixA`        |
 | Find a Bekenstein / BH-attractor number                   | `FTC/CROSS_REFERENCE.md`                       |
 | Hack on Φ-cells, CORDIC, or the FPGA bitstream            | `FIL/AGENT.md` + `FIL/README.md`               |
-| Trace a lemma across repos                                | `RSSN/LEMMA_DERIVATIONS.md`                    |
+| Trace a lemma across repos                                | `LEMMA_DERIVATIONS.md`                         |
 | See current proof status                                  | `*/CROSS_REFERENCE.md` + each repo's Lean tree |
-| Run the lemma test suite                                  | `RSSN/tests/test_*_lemmas.py`                  |
+| Run the lemma test suite                                  | `tests/test_*_lemmas.py`                       |
 
 ---
 
@@ -380,4 +386,4 @@ you're ready to contribute:
 (Answers: RSF Axiom 9; standard diffeomorphism / Lie-derivative geometry;
 deterministic geometric evolution on classical silicon with a
 non-factorizable correlator; `D*_BH = e^{-π} ≈ 0.0432`;
-`RSSN/LEMMA_DERIVATIONS.md`.)
+`LEMMA_DERIVATIONS.md`.)
