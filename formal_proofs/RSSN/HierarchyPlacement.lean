@@ -95,8 +95,7 @@ lemma triangle_lt_g₂_g₂ (n : ℕ) (hn : 2 ≤ n) : triangle n < g₂ (g₂ n
 theorem L3_3_triangle_below_f3 (n : ℕ) (hn : 2 ≤ n) :
     triangle n < f₃ n := by
   rw [f₃_eq_iter]
-  have hgg : g₂^[2] n = g₂ (g₂ n) := by
-    rw [Function.iterate_succ_apply', Function.iterate_one]
+  have hgg : g₂^[2] n = g₂ (g₂ n) := rfl
   calc triangle n < g₂ (g₂ n) := triangle_lt_g₂_g₂ n hn
     _ = g₂^[2] n := hgg.symm
     _ ≤ g₂^[n] n := g₂_iter_mono n (by omega) hn

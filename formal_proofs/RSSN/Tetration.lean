@@ -139,7 +139,8 @@ def triangleIter : ℕ → ℕ → ℕ
    The simp lemmas above (proven by `rfl` while still reducible)
    let downstream proofs step through it explicitly.
    (Block comment, not a doc comment: `attribute` commands cannot carry
-   doc comments — a `/--` here is a parse error.) -/
+   doc comments — a doc-comment opener here is a parse error, and a
+   literal one inside this comment would nest and never terminate.) -/
 attribute [irreducible] triangleIter
 
 /-- All iterates stay ≥ n (and hence ≥ 2 if n ≥ 2).

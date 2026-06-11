@@ -70,13 +70,23 @@ open RSSN.ShapeOperators in
 theorem shape_commutator_orders_differ :
     triangle (square 2) < square (triangle 2) := by
   rw [square_two, triangle_two]
-  -- Goal: triangle 256 < square 4 = triangleIter 4 4.
-  show triangle 256 < triangleIter 4 4
-  -- Unfold the four-fold iterate symbolically (no kernel arithmetic: only the
-  -- structural recursion of `triangleIter` is unfolded, `triangle _` stays
-  -- opaque), then rewrite the innermost `triangle 4 = 256`.
-  have h44 : triangleIter 4 4 = triangle (triangle (triangle (triangle 4))) := rfl
-  rw [h44, triangle_four]
+  -- Goal: triangle 256 < square 4 = triangleIter 4 4. Unfold the iterate
+  -- ONLY through the proven equation lemmas (`triangleIter_succ/zero`) with
+  -- explicitly instantiated indices, never by `rfl`/defeq between the
+  -- iterate and the unfolded tower: a definitional comparison there makes
+  -- the elaborator normalize `Nat.pow` at (256^256)-sized arguments and
+  -- panic — exactly the overflow the repo history records for (k, n)=(3, 4).
+  -- Each `show` below only re-expresses a numeral as `_ + 1` under an
+  -- unchanged head symbol (same-head congruence: cheap, no unfolding).
+  rw [show square 4 = triangleIter 4 4 from rfl]
+  show triangle 256 < triangleIter (3 + 1) 4
+  rw [triangleIter_succ 3 4]
+  show triangle 256 < triangle (triangleIter (2 + 1) 4)
+  rw [triangleIter_succ 2 4]
+  show triangle 256 < triangle (triangle (triangleIter (1 + 1) 4))
+  rw [triangleIter_succ 1 4]
+  show triangle 256 < triangle (triangle (triangle (triangleIter (0 + 1) 4)))
+  rw [triangleIter_succ 0 4, triangleIter_zero 4, triangle_four]
   -- Goal: triangle 256 < triangle (triangle (triangle 256)).
   have h256 : 2 ≤ triangle 256 :=
     le_trans (by norm_num : (2:ℕ) ≤ 256) (triangle_ge_n 256 (by norm_num))

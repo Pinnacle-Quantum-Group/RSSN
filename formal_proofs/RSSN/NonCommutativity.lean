@@ -76,15 +76,22 @@ lemma triangleIter_mono_base {a b : ℕ} (ha : 2 ≤ a) (hab : a ≤ b) :
     ∀ k, triangleIter k a ≤ triangleIter k b := by
   intro k
   induction k with
-  | zero => exact hab
+  | zero =>
+    -- `triangleIter` is irreducible (kernel-overflow guard in Tetration), so
+    -- step through its equation lemmas rather than `exact`-defeq.
+    calc triangleIter 0 a = a := triangleIter_zero a
+      _ ≤ b := hab
+      _ = triangleIter 0 b := (triangleIter_zero b).symm
   | succ k ih =>
-    show triangle (triangleIter k a) ≤ triangle (triangleIter k b)
-    -- triangle is monotone on inputs ≥ 2 (strict-mono with ≤ from <).
-    rcases Nat.eq_or_lt_of_le ih with heq | hlt
-    · rw [heq]
-    · -- Need triangleIter k a ≥ 2 to invoke triangle_strict_mono.
-      have ha_iter : 2 ≤ triangleIter k a := ha.trans (triangleIter_ge_arg ha k)
-      exact (triangle_strict_mono ha_iter hlt).le
+    have ha_iter : 2 ≤ triangleIter k a := ha.trans (triangleIter_ge_arg ha k)
+    calc triangleIter (k + 1) a
+        = triangle (triangleIter k a) := triangleIter_succ k a
+      _ ≤ triangle (triangleIter k b) := by
+          -- triangle is monotone on inputs ≥ 2 (strict-mono with ≤ from <).
+          rcases Nat.eq_or_lt_of_le ih with heq | hlt
+          · rw [heq]
+          · exact (triangle_strict_mono ha_iter hlt).le
+      _ = triangleIter (k + 1) b := (triangleIter_succ k b).symm
 
 theorem triangleIter_3_4_ge_triangleIter_3_2 :
     triangleIter 3 2 ≤ triangleIter 3 4 :=
