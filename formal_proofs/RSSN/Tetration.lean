@@ -131,26 +131,32 @@ def triangleIter : ℕ → ℕ → ℕ
 @[simp] lemma triangleIter_succ (k n : ℕ) :
     triangleIter (k + 1) n = triangle (triangleIter k n) := rfl
 
-/-- Mark `triangleIter` irreducible for the kernel.
-    Without this, instantiating proofs at concrete `(k, n) = (3, 4)`
-    causes the kernel to normalize `triangleIter 3 4` →
-    `(256^256)^(256^256)`, which overflows Nat.pow and triggers
-    "INTERNAL PANIC: Nat.pow exponent is too big".
-    The simp lemmas above (proven by `rfl` while still reducible)
-    let downstream proofs step through it explicitly. -/
+/- Mark `triangleIter` irreducible for the kernel.
+   Without this, instantiating proofs at concrete `(k, n) = (3, 4)`
+   causes the kernel to normalize `triangleIter 3 4` →
+   `(256^256)^(256^256)`, which overflows Nat.pow and triggers
+   "INTERNAL PANIC: Nat.pow exponent is too big".
+   The simp lemmas above (proven by `rfl` while still reducible)
+   let downstream proofs step through it explicitly.
+   (Block comment, not a doc comment: `attribute` commands cannot carry
+   doc comments — a doc-comment opener here is a parse error, and a
+   literal one inside this comment would nest and never terminate.) -/
 attribute [irreducible] triangleIter
 
-/-- All iterates stay ≥ n (and hence ≥ 2 if n ≥ 2). -/
+/-- All iterates stay ≥ n (and hence ≥ 2 if n ≥ 2).
+    `triangleIter` is irreducible here, so each step goes through the
+    `triangleIter_zero` / `triangleIter_succ` equations, never `show`-defeq. -/
 lemma triangleIter_ge_arg {n : ℕ} (hn : 2 ≤ n) :
     ∀ k, n ≤ triangleIter k n := by
   intro k
   induction k with
-  | zero => exact le_refl n
+  | zero => exact le_of_eq (triangleIter_zero n).symm
   | succ k ih =>
     -- triangleIter (k+1) n = triangle (triangleIter k n) ≥ triangleIter k n ≥ n
-    show n ≤ triangle (triangleIter k n)
     have hge : 2 ≤ triangleIter k n := hn.trans ih
-    exact ih.trans (triangle_grows hge).le
+    calc n ≤ triangleIter k n := ih
+      _ ≤ triangle (triangleIter k n) := (triangle_grows hge).le
+      _ = triangleIter (k + 1) n := (triangleIter_succ k n).symm
 
 /-- `triangle` is strictly monotone on inputs `≥ 2`. -/
 lemma triangle_strict_mono {x y : ℕ} (hx : 2 ≤ x) (hxy : x < y) :
@@ -165,16 +171,14 @@ lemma triangle_strict_mono {x y : ℕ} (hx : 2 ≤ x) (hxy : x < y) :
     _ < y ^ y := pow_lt_pow_right (show (1:ℕ) < y by omega) hxy
 
 /-- For `n ≥ 2`, iterating `triangle` strictly grows.
-    Source of non-commutativity for the Triangle/Square ladder. -/
+    Source of non-commutativity for the Triangle/Square ladder.
+    No induction needed: one `triangleIter_succ` step exposes
+    `triangle (triangleIter k n)`, and `triangle_grows` applies since
+    the iterate stays ≥ 2 by `triangleIter_ge_arg`. -/
 lemma triangleIter_strict_grows {n : ℕ} (hn : 2 ≤ n) (k : ℕ) :
     triangleIter k n < triangleIter (k + 1) n := by
-  induction k with
-  | zero =>
-    show n < triangle n
-    exact triangle_grows hn
-  | succ k ih =>
-    show triangle (triangleIter k n) < triangle (triangleIter (k + 1) n)
-    have h_arg_ge : 2 ≤ triangleIter k n := hn.trans (triangleIter_ge_arg hn k)
-    exact triangle_strict_mono h_arg_ge ih
+  have h_arg_ge : 2 ≤ triangleIter k n := hn.trans (triangleIter_ge_arg hn k)
+  calc triangleIter k n < triangle (triangleIter k n) := triangle_grows h_arg_ge
+    _ = triangleIter (k + 1) n := (triangleIter_succ k n).symm
 
 end RSSN.Tetration
