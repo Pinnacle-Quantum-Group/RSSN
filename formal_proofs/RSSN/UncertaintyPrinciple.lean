@@ -8,6 +8,7 @@
   Reference: LEMMA_DERIVATIONS.md RSSN T8
 -/
 import Mathlib
+import RSSN.ShapeOperators
 
 noncomputable section
 open Real
@@ -49,12 +50,49 @@ theorem L8_2_robertson_trivial_when_commuting (op : OperatorPair)
   rw [mul_zero]
   exact mul_nonneg op.h_var₁ op.h_var₂
 
-/-! ## Application to RSSN Shape Operators -/
+/-! ## Application to RSSN Shape Operators
 
-def shapeCommutatorValue : ℝ := sorry  -- |Triangle(Square(2)) - Square(Triangle(2))|
+    The commutator value is `|Triangle(Square(2)) − Square(Triangle(2))|`.
+    Both sides are concrete naturals — `Triangle(Square 2) = Triangle 256 =
+    256^256` and `Square(Triangle 2) = Square 4 = Triangle⁴(4)` — but far too
+    large to evaluate in the kernel, so non-vanishing is proved structurally:
+    `Triangle⁴(4) = Triangle(Triangle(Triangle 256))` strictly dominates
+    `Triangle 256` because `Triangle` is strictly inflationary on inputs ≥ 2. -/
+
+open RSSN.ShapeOperators in
+/-- `|Triangle(Square(2)) - Square(Triangle(2))|` as a real number. -/
+def shapeCommutatorValue : ℝ :=
+  |(↑(triangle (square 2)) : ℝ) - ↑(square (triangle 2))|
+
+open RSSN.ShapeOperators in
+/-- The two operator orders genuinely differ at n = 2:
+    `Triangle(Square 2) < Square(Triangle 2)`. -/
+theorem shape_commutator_orders_differ :
+    triangle (square 2) < square (triangle 2) := by
+  rw [square_two, triangle_two]
+  -- Goal: triangle 256 < square 4 = triangleIter 4 4.
+  show triangle 256 < triangleIter 4 4
+  -- Unfold the four-fold iterate symbolically (no kernel arithmetic: only the
+  -- structural recursion of `triangleIter` is unfolded, `triangle _` stays
+  -- opaque), then rewrite the innermost `triangle 4 = 256`.
+  have h44 : triangleIter 4 4 = triangle (triangle (triangle (triangle 4))) := rfl
+  rw [h44, triangle_four]
+  -- Goal: triangle 256 < triangle (triangle (triangle 256)).
+  have h256 : 2 ≤ triangle 256 :=
+    le_trans (by norm_num : (2:ℕ) ≤ 256) (triangle_ge_n 256 (by norm_num))
+  have h1 : triangle 256 < triangle (triangle 256) := triangle_gt_self h256
+  have h2 : triangle (triangle 256) < triangle (triangle (triangle 256)) :=
+    triangle_gt_self (h256.trans h1.le)
+  exact h1.trans h2
 
 theorem shape_commutator_nonzero :
-    0 < |shapeCommutatorValue| := by sorry
+    0 < |shapeCommutatorValue| := by
+  have hne : (↑(RSSN.ShapeOperators.triangle (RSSN.ShapeOperators.square 2)) : ℝ) ≠
+      ↑(RSSN.ShapeOperators.square (RSSN.ShapeOperators.triangle 2)) := by
+    exact_mod_cast Nat.ne_of_lt shape_commutator_orders_differ
+  unfold shapeCommutatorValue
+  rw [abs_abs]
+  exact abs_pos.mpr (sub_ne_zero.mpr hne)
 
 theorem T8_robertson_form_nontrivial :
     ∀ (Δ₁ Δ₂ : ℝ), 0 < Δ₁ → 0 < Δ₂ →
