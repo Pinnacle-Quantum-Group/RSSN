@@ -121,28 +121,39 @@ checks:
 ## 4. Evaluating δ for Triangle: the density falls out
 
 Take `Triangle(n) = n^n`. Under the standard convention its base is α = 2
-(justified in §5), and `A_2` is the **super-logarithm** `slog` determined by
-`A_2(2^x) = A_2(x) + 1` (the Abel function of the exponential rung f_2).
+(justified in §5). The relevant Abel function is that of the **repository's** rung
+`f_2(x) = 2^x · x` (`formal_proofs/RSSN/HierarchyPlacement.lean:19`), so it obeys
+the *exact* equation
 
-Compute `A_2(n^n) − A_2(n)`. Writing `n^n = 2^{(n·log₂ n)}` and using the
-super-log step `slog(2^x) = slog(x) + 1`:
+> **(A₂)**   A_2(2^x · x) = A_2(x) + 1   — **not** the pure-exponential
+> `A_2(2^x) = A_2(x) + 1`. Writing `f_2(x) = 2^{x + log₂ x}`, the `·x` adds only a
+> *sub-linear* `log₂ x` to the exponent.
+
+**Bracket (rigorous, convention-exact).** For `n ≥ 3`,
+`f_2(n) = 2^n·n ≤ n^n < f_2(f_2(n))` — the left because `n^n/(2^n·n) = n^{n-1}/2^n
+→ ∞`, the right because `f_2²(n)` is doubly exponential. With
+`A_2(f_2^[k](n)) = A_2(n) + k` (the proven `L3_1_abel_iteration`) and `A_2`
+strictly monotone,
 
 ```
-A_2(n^n)  =  slog(2^{n·log₂ n})  =  slog(n·log₂ n) + 1
-A_2(n^n) − A_2(n)  =  1 + [ slog(n·log₂ n) − slog(n) ].
+1 < A_2(n^n) − A_2(n) < 2,    so    1/n < δ_Triangle(n) < 2/n   (all n ≥ 3).
 ```
 
-The bracket is the super-log distance between `n` and `n·log₂ n`. Both lie in the
-same sub-exponential band (`n·log₂ n ≪ 2^n`), so as n → ∞ the factor `log₂ n` is
-negligible on the super-log scale and
+**Sharpening to the lower edge.** The Abel *difference* `A_2(u) − A_2(v)` is
+invariant under applying `f_2^{-1}` to both arguments (immediate from (A₂)). Since
+`f_2^{-1}(y) = log₂ y − log₂log₂ y + o(1)`, one application sends
+`n^n ↦ n·log₂ n + o(·)` and `n ↦ log₂ n + o(·)`; iterating `f_2^{-1}`, the two
+orbits collapse — their separation is only of order `log₂log₂ n`, crushed by each
+further de-exponentiation. So the fractional part above the first iterate vanishes:
 
-```
-slog(n·log₂ n) − slog(n) → 0.
-```
+> **(†)**   A_2(n^n) − A_2(n) → 1,    so   **δ_Triangle(n) = 1/n + o(1/n)**,
 
-Hence
-
-> **(†)**   A_2(n^n) − A_2(n) → 1,    so   δ_Triangle(n) = 1/n + o(1/n).
+now derived from the repository's `f_2(x) = 2^x·x` itself — the `·x` factor enters
+only at the `log₂log₂` level and does not touch the leading order. *(The first
+draft used the pure-exponential Abel equation `A_2(2^x)=A_2(x)+1`; thanks to the
+Codex review for catching that. The corrected derivation above changes the proof,
+not the result: the unconditional bracket already pins `δ ∈ (1/n, 2/n)`, and the
+`·x` correction is sub-`log₂log₂`.)*
 
 And the proven density of Triangle is `D(n) = 1/n` (`triangle_ratio_constant`,
 `triangle_density_converges`). Therefore
@@ -153,12 +164,6 @@ The fractal density **is** the leading-order fractional ordinal offset. The
 posited `δ(D) = D` of README §5.1 is *recovered as the leading term* of the
 Abel-derived δ — now with a reason: density measures the same Abel-normalized
 climb that the fractional ordinal does.
-
-**Bracketing (rigorous, non-asymptotic).** For all n ≥ 3, `Triangle(n) = n^n`
-satisfies `f_2(n) = 2^n·n < n^n < f_2(f_2(n))`, i.e. it lies strictly between one
-and two f_2-iterates above n. By monotonicity of `A_2` and (1),
-`1 < A_2(n^n) − A_2(n) < 2`, so `1/n < δ_Triangle(n) < 2/n` exactly. (†) sharpens
-the position to the lower edge.
 
 **The other shapes.** By §2, `Square ≈ f_{β+1}`, `Circle ≈ f_{β+2}`. Their
 densities converge to 0 (`square_density_vanishes_model`), consistent with their
