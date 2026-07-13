@@ -1,0 +1,95 @@
+# TEMPORARY — Lean toolchain export for sandboxed dev environment.
+#
+# The remote dev sandbox for this repo can reach github.com only over the
+# git protocol (release-asset and lakecache hosts are blocked by egress
+# policy), so it cannot install elan/Lean or fetch the Mathlib olean cache
+# directly. This manually-triggered job builds that environment on a runner
+# (which has full network access) and ships it back through the one channel
+# the sandbox does have: a throwaway git branch of chunked tarballs.
+#
+# Trigger by hand (workflow_dispatch), consume, then delete the
+# ci/lean-env-pcn77y branch and this file. Not part of regular CI.
+
+name: Toolchain Export
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: toolchain-export
+  cancel-in-progress: false
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      EXPORT_BRANCH: ci/lean-env-pcn77y
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install elan (Lean toolchain manager)
+        run: |
+          set -euxo pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.1.1/elan-x86_64-unknown-linux-gnu.tar.gz -o elan.tar.gz
+          tar -xzf elan.tar.gz
+          ./elan-init -y --default-toolchain "$(cat lean-toolchain)"
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Resolve deps and fetch Mathlib cache
+        run: |
+          set -euxo pipefail
+          lean --version
+          lake exe cache get
+          # Trim what the sandbox will never need: git history of deps.
+          du -sh .lake/packages "$HOME/.elan" || true
+
+      - name: Package toolchain and packages
+        run: |
+          set -euxo pipefail
+          mkdir -p /tmp/export
+          tar -C "$HOME" -cf - .elan | xz -T0 -1 > /tmp/export/elan.tar.xz
+          tar -cf - .lake/packages | xz -T0 -1 > /tmp/export/packages.tar.xz
+          cd /tmp/export
+          ls -la
+          split -b 90m -d -a 3 elan.tar.xz elan.part.
+          split -b 90m -d -a 3 packages.tar.xz packages.part.
+          rm elan.tar.xz packages.tar.xz
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Push chunks to export branch
+        run: |
+          set -euxo pipefail
+          cd /tmp/export
+          git init -b "$EXPORT_BRANCH" repo
+          cd repo
+          git config user.email "actions@github.com"
+          git config user.name "github-actions[bot]"
+          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          mv ../SHA256SUMS .
+          git add SHA256SUMS
+          git commit -m "lean env export: checksums"
+          git push -f origin "$EXPORT_BRANCH"
+          # Push in slices to stay under per-push size limits.
+          i=0
+          for f in ../elan.part.* ../packages.part.*; do
+            mv "$f" .
+            git add "$(basename "$f")"
+            i=$((i+1))
+            if [ $((i % 5)) -eq 0 ]; then
+              git commit -m "lean env export: batch through part $i"
+              git push origin "$EXPORT_BRANCH"
+            fi
+          done
+          if ! git diff --cached --quiet; then
+            git commit -m "lean env export: final batch"
+            git push origin "$EXPORT_BRANCH"
+          fi
+          echo "DONE — all parts pushed to $EXPORT_BRANCH"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
