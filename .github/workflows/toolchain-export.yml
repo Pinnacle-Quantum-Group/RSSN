@@ -7,13 +7,16 @@
 # (which has full network access) and ships it back through the one channel
 # the sandbox does have: a throwaway git branch of chunked tarballs.
 #
-# Trigger by hand (workflow_dispatch), consume, then delete the
-# ci/lean-env-pcn77y branch and this file. Not part of regular CI.
+# Runs only when a commit message on the dev branch contains
+# [export-lean-env] (the integration token cannot use workflow_dispatch).
+# Consume, then delete the ci/lean-env-pcn77y branch and this file.
+# Not part of regular CI.
 
 name: Toolchain Export
 
 on:
-  workflow_dispatch:
+  push:
+    branches: ['claude/lean-proofs-improvement-pcn77y']
 
 permissions:
   contents: write
@@ -24,6 +27,7 @@ concurrency:
 
 jobs:
   export:
+    if: contains(github.event.head_commit.message, '[export-lean-env]')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
