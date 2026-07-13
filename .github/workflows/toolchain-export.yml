@@ -29,7 +29,7 @@ jobs:
   export:
     if: contains(github.event.head_commit.message, '[export-lean-env]')
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 330
     env:
       EXPORT_BRANCH: ci/lean-env-pcn77y
     steps:
@@ -48,9 +48,17 @@ jobs:
         run: |
           set -euxo pipefail
           lean --version
-          lake exe cache get
-          # Trim what the sandbox will never need: git history of deps.
+          # The hosted olean cache for this Mathlib vintage (v4.5.0, early
+          # 2024) has been aged out — `cache get` comes back empty. Try it
+          # anyway (harmless), then compile Mathlib for real below.
+          lake exe cache get || true
           du -sh .lake/packages "$HOME/.elan" || true
+
+      - name: Build Mathlib + project (full compile, ~3h)
+        run: |
+          set -euxo pipefail
+          lake build 2>&1 | tail -100
+          find .lake/packages/mathlib/.lake/build/lib -name '*.olean' | wc -l
 
       - name: Package toolchain and packages
         run: |
