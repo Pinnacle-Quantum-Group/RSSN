@@ -3,7 +3,8 @@
   Pinnacle Quantum Group — April 2026
 
   L3.1: Abel function existence for Triangle (established math, Écalle 1974)
-  L3.2: Fractional ordinal definition via Abel interpolation
+  L3.2: Fractional iteration via Abel interpolation, proved consistent
+        with integer iteration (T^(n) = T^[n], from injectivity of A)
   L3.3: Corrected hierarchy placement — Triangle < f_3 (not = f_3)
   Reference: LEMMA_DERIVATIONS.md RSSN T3
 -/
@@ -110,7 +111,7 @@ theorem triangle_2_eq : triangle 2 = 4 := by
   unfold triangle; norm_num
 
 theorem f3_2_eq : f₃ 2 = 2048 := by
-  native_decide
+  decide
 
 theorem triangle_lt_f3_at_2 : triangle 2 < f₃ 2 :=
   L3_3_triangle_below_f3 2 (by norm_num)
@@ -122,7 +123,7 @@ theorem triangle_growth_lower (n : ℕ) (hn : 2 ≤ n) :
   unfold triangle
   exact Nat.pow_le_pow_left (by omega) n
 
-theorem triangle_growth_upper (n : ℕ) (hn : 1 ≤ n) :
+theorem triangle_growth_upper (n : ℕ) :
     triangle n ≤ n ^ n := le_refl _
 
 /-! ## L3.1 — Abel Function (Existence Statement)
@@ -150,10 +151,14 @@ theorem L3_1_abel_iteration (af : AbelFunction) (n : ℕ) (x : ℝ) :
 noncomputable def fractionalIterate (af : AbelFunction) (α : ℝ) (x : ℝ) : ℝ :=
   Function.invFun af.A (af.A x + α)
 
-theorem L3_2_integer_iteration_consistent (af : AbelFunction)
-    (hSurj : Function.Surjective af.A) (n : ℕ) (x : ℝ) :
-    af.A (af.T^[n] x) = af.A x + ↑n :=
-  L3_1_abel_iteration af n x
+/-- **L3.2.** Fractional iteration at an integer ordinal agrees with integer
+    iteration: `T^(n) = T^[n]`. Injectivity of the Abel function (from strict
+    monotonicity) suffices; no surjectivity hypothesis is needed. -/
+theorem L3_2_integer_iteration_consistent (af : AbelFunction) (n : ℕ) (x : ℝ) :
+    fractionalIterate af (n : ℝ) x = af.T^[n] x := by
+  unfold fractionalIterate
+  rw [← L3_1_abel_iteration af n x]
+  exact Function.leftInverse_invFun af.monotone.injective (af.T^[n] x)
 
 /-! ## 4. Hierarchy Bounds Summary -/
 
