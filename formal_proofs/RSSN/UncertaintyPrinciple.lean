@@ -3,12 +3,19 @@
   Pinnacle Quantum Group — April 2026
 
   L8.1: Scalar quantities commute (kills original derivation route)
-  L8.2: Robertson relation for non-commuting operators (TIGHT)
-  T8 in Robertson form: ΔS₁ · ΔS₂ ≥ ½|⟨[S₁,S₂]⟩|
+  L8.2: Robertson relation for non-commuting operators (TIGHT) —
+        established in the degenerate commuting case AND for a concrete
+        non-commuting witness (the Pauli pair σₓ, σᵧ in state |0⟩),
+        where the bound holds with equality.
+  T8 in Robertson form: ΔS₁ · ΔS₂ ≥ ½|⟨[S₁,S₂]⟩| forces ΔS₁ · ΔS₂ > 0,
+        because the shape commutator is proven nonzero.
+  Original form fails at n = 1: the ℤ-valued commutator of the genuine
+        shape operators vanishes there.
   Reference: LEMMA_DERIVATIONS.md RSSN T8
 -/
 import Mathlib
 import RSSN.ShapeOperators
+import RSSN.NonCommutativity
 
 noncomputable section
 open Real
@@ -49,6 +56,101 @@ theorem L8_2_robertson_trivial_when_commuting (op : OperatorPair)
   -- Goal: op.variance₁ * op.variance₂ ≥ 0 * 0. Rewrite RHS to 0.
   rw [mul_zero]
   exact mul_nonneg op.h_var₁ op.h_var₂
+
+/-! ## L8.2 Witness — A Genuinely Non-Commuting Pair
+
+    `robertsonBound` must not be inhabited only in the degenerate
+    commuting case. The Pauli matrices σₓ, σᵧ measured in the basis
+    state |0⟩ give a concrete pair with *nonzero* commutator
+    expectation ⟨[σₓ,σᵧ]⟩ = 2i, unit variances, and the Robertson
+    bound holding with EQUALITY — witnessing that the bound is tight. -/
+
+/-- Pauli σₓ matrix. -/
+def pauliX : Matrix (Fin 2) (Fin 2) ℂ := !![0, 1; 1, 0]
+
+/-- Pauli σᵧ matrix. -/
+def pauliY : Matrix (Fin 2) (Fin 2) ℂ := !![0, -Complex.I; Complex.I, 0]
+
+/-- The spin-up basis state |0⟩. -/
+def ket0 : Fin 2 → ℂ := ![1, 0]
+
+/-- Expectation value ⟨0|M|0⟩ of an observable `M` in the state |0⟩. -/
+def expVal (M : Matrix (Fin 2) (Fin 2) ℂ) : ℂ :=
+  Matrix.dotProduct (fun i => (starRingEnd ℂ) (ket0 i)) (M.mulVec ket0)
+
+/-- In the state |0⟩ the expectation of `M` is its (0,0) entry. -/
+theorem expVal_eq_entry (M : Matrix (Fin 2) (Fin 2) ℂ) : expVal M = M 0 0 := by
+  simp [expVal, ket0, Matrix.dotProduct, Matrix.mulVec, Fin.sum_univ_two]
+
+/-- Variance ⟨M²⟩ − ⟨M⟩² of an observable in the state |0⟩ (real part;
+    for self-adjoint `M` both moments are real). -/
+def varOf (M : Matrix (Fin 2) (Fin 2) ℂ) : ℝ :=
+  (expVal (M * M)).re - (expVal M).re ^ 2
+
+theorem expVal_pauliX : expVal pauliX = 0 := by
+  rw [expVal_eq_entry]; simp [pauliX]
+
+theorem expVal_pauliY : expVal pauliY = 0 := by
+  rw [expVal_eq_entry]; simp [pauliY]
+
+/-- σₓ has unit variance in |0⟩: ⟨σₓ²⟩ − ⟨σₓ⟩² = 1 − 0 = 1. -/
+theorem varOf_pauliX : varOf pauliX = 1 := by
+  unfold varOf
+  rw [expVal_pauliX, expVal_eq_entry]
+  simp [pauliX, Matrix.mul_apply, Fin.sum_univ_two]
+
+/-- σᵧ has unit variance in |0⟩: ⟨σᵧ²⟩ − ⟨σᵧ⟩² = 1 − 0 = 1. -/
+theorem varOf_pauliY : varOf pauliY = 1 := by
+  unfold varOf
+  rw [expVal_pauliY, expVal_eq_entry]
+  simp [pauliY, Matrix.mul_apply, Fin.sum_univ_two, Complex.I_mul_I]
+
+/-- The commutator expectation ⟨0|[σₓ,σᵧ]|0⟩ equals 2i — pure imaginary
+    and nonzero, exactly as standard quantum mechanics predicts. -/
+theorem expVal_pauli_commutator :
+    expVal (pauliX * pauliY - pauliY * pauliX) = 2 * Complex.I := by
+  rw [expVal_eq_entry]
+  simp [pauliX, pauliY, Matrix.sub_apply, Matrix.mul_apply, Fin.sum_univ_two]
+  ring
+
+/-- The Pauli pair packaged as an `OperatorPair`: the *computed* unit
+    variances and the *computed* commutator-expectation magnitude
+    |⟨[σₓ,σᵧ]⟩| = |2i| = 2. -/
+def pauliPair : OperatorPair where
+  variance₁ := varOf pauliX
+  variance₂ := varOf pauliY
+  commutator_expectation := Complex.abs (expVal (pauliX * pauliY - pauliY * pauliX))
+  h_var₁ := by rw [varOf_pauliX]; exact zero_le_one
+  h_var₂ := by rw [varOf_pauliY]; exact zero_le_one
+
+theorem pauliPair_variance₁ : pauliPair.variance₁ = 1 := varOf_pauliX
+
+theorem pauliPair_variance₂ : pauliPair.variance₂ = 1 := varOf_pauliY
+
+theorem pauliPair_commutator_eq_two : pauliPair.commutator_expectation = 2 := by
+  show Complex.abs (expVal (pauliX * pauliY - pauliY * pauliX)) = 2
+  rw [expVal_pauli_commutator]
+  simp [Complex.abs_two, Complex.abs_I]
+
+/-- The witness is genuinely non-commuting: its commutator expectation
+    is nonzero, so `L8_2_robertson_trivial_when_commuting` does NOT apply. -/
+theorem pauliPair_commutator_ne_zero : pauliPair.commutator_expectation ≠ 0 := by
+  rw [pauliPair_commutator_eq_two]; norm_num
+
+/-- **L8.2, non-trivial case.** The Robertson bound holds for a concrete
+    pair whose commutator expectation is nonzero: 1 · 1 ≥ (½·|2|)² = 1. -/
+theorem L8_2_robertson_pauli : robertsonBound pauliPair := by
+  unfold robertsonBound
+  rw [pauliPair_variance₁, pauliPair_variance₂, pauliPair_commutator_eq_two]
+  norm_num
+
+/-- For the Pauli pair the Robertson bound is TIGHT: equality holds,
+    so the ½ prefactor cannot be improved. -/
+theorem robertson_tight_for_pauli :
+    pauliPair.variance₁ * pauliPair.variance₂ =
+      (1 / 2 * |pauliPair.commutator_expectation|) ^ 2 := by
+  rw [pauliPair_variance₁, pauliPair_variance₂, pauliPair_commutator_eq_two]
+  norm_num
 
 /-! ## Application to RSSN Shape Operators
 
@@ -104,22 +206,44 @@ theorem shape_commutator_nonzero :
   rw [abs_abs]
   exact abs_pos.mpr (sub_ne_zero.mpr hne)
 
+/-- The Robertson lower bound for the RSSN shape operators is strictly
+    positive, because the shape commutator does not vanish. -/
+theorem robertson_lower_bound_positive :
+    0 < 1 / 2 * |shapeCommutatorValue| :=
+  mul_pos one_half_pos shape_commutator_nonzero
+
+/-- **T8, Robertson form, non-trivially.** Any pair of uncertainties whose
+    product satisfies the Robertson bound for the shape operators is forced
+    to have strictly positive product — by the bound alone, with NO
+    positivity assumptions on Δ₁, Δ₂, since ½|⟨[S₁,S₂]⟩| > 0. -/
 theorem T8_robertson_form_nontrivial :
-    ∀ (Δ₁ Δ₂ : ℝ), 0 < Δ₁ → 0 < Δ₂ →
+    ∀ (Δ₁ Δ₂ : ℝ),
     Δ₁ * Δ₂ ≥ (1 / 2 * |shapeCommutatorValue|) →
     0 < Δ₁ * Δ₂ := by
-  intro Δ₁ Δ₂ h₁ h₂ _
-  exact mul_pos h₁ h₂
+  intro Δ₁ Δ₂ h
+  exact lt_of_lt_of_le robertson_lower_bound_positive h
 
-/-! ## Original Form Counterexample at n=1 -/
+/-! ## Original Form Counterexample at n=1
 
+    At n = 1 the genuine shape operators DO commute —
+    `Triangle(Square 1) = Square(Triangle 1) = 1` — so no uniform
+    positive lower bound on the commutator can hold across all n:
+    the original (n-uniform) form of T8 fails at n = 1. -/
+
+open RSSN.ShapeOperators in
+/-- The shape operators commute at n = 1: both composition orders reduce
+    to 1. (Kernel reduction is safe at these tiny values, unlike n = 2
+    where `256^256` overflows the kernel.) -/
 theorem T8_original_fails_at_1 :
-    let triangle_1 := (1 : ℕ) ^ 1
-    let square_1 := (1 : ℕ) ^ 1
-    triangle_1 = square_1 := by
-  norm_num
+    triangle (square 1) = square (triangle 1) := rfl
 
+open RSSN.ShapeOperators in
+/-- The ℤ-valued commutator of the genuine shape operators vanishes at
+    n = 1 — contrast `RSSN.NonCommutativity.commutator_nonzero` at n = 2. -/
 theorem original_commutator_zero_at_1 :
-    (1 : ℕ) ^ (1 : ℕ) - (1 : ℕ) ^ (1 : ℕ) = 0 := by norm_num
+    RSSN.NonCommutativity.commutator triangle square 1 = 0 := by
+  unfold RSSN.NonCommutativity.commutator
+  rw [T8_original_fails_at_1]
+  exact sub_self _
 
 end RSSN.UncertaintyPrinciple
