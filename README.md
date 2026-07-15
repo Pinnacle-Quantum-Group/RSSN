@@ -194,6 +194,8 @@ Traditional set theory relies on Cantor's notion of cardinality to compare infin
 **Theorem 5 (Cardinality Transcendence):**
 RSSN provides a framework that transcends traditional cardinality hierarchies by replacing static set comparison with recursive density metrics.
 
+*Formalized in Lean 4:* `formal_proofs/RSSN/CardinalityTranscendence.lean` — the density spectrum is the full unit continuum (L5.1, dyadic realization), density is structural rather than intrinsic (`T5_structural_dependency`), the power-stage count outruns every enumeration frame while staying finite at each stage (L5.2–L5.3), and Cantor's middle-thirds bookkeeping (RSF T8) embeds as the RSSN density sequence with ratio (2/3)^i (`T5_cantor_bridge`).
+
 **Proof:**
 In traditional set theory, Cantor's diagonal argument establishes that \( |2^X| > |X| \) for any set X, creating a hierarchy of infinities.
 
