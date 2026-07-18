@@ -261,7 +261,17 @@ def dyadic_rationals(n: int) -> list:
     return [k / denom for k in range(denom + 1)]
 
 def powers_of_two(n: int) -> list:
-    return [2 ** k for k in range(n + 1)]
+    # Powers of two that are <= n: the natural-density convention proved in
+    # RSF.CardinalityTranscendence.L2_2_powers_density_zero (~ log2(n)/n -> 0).
+    # The previous version returned the first n+1 powers, which forced the
+    # same element count as successor_naturals at every depth and collapsed
+    # the density gap that L2.1 exists to falsify.
+    out = []
+    k = 0
+    while 2 ** k <= max(n, 1):
+        out.append(2 ** k)
+        k += 1
+    return out
 
 
 # ---------------------------------------------------------------------------

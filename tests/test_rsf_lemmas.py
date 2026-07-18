@@ -61,7 +61,11 @@ class TestLemma4_1_DensitySpectrumDense:
             assert abs(achieved - d) <= 1.0 / (n * n) + d * 0.5 + 0.01
 
     def test_density_covers_unit_interval(self):
-        densities = [1.0 / n for n in range(1, 101)]
+        # The corrected spectrum (RSF.ContinuumResolution.Fix, aligned with
+        # L4_1_spectrum_contains_rationals) is the rationals in (0, 1], not
+        # just {1/n} — reciprocals alone leave gaps > 0.02 around e.g. 0.3.
+        densities = sorted({p / q for q in range(1, 21)
+                            for p in range(1, q + 1)})
         for target in [0.1 * k for k in range(1, 11)]:
             assert min(abs(d - target) for d in densities) < 0.02
 

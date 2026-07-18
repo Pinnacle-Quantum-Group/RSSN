@@ -701,3 +701,68 @@ RSSN operations can be represented in a phase space where:
 - A third axis represents fractal density
 
 This three-dimensional representation reveals "islands of stability" where fractal density converges to rational values, surrounded by regions of chaotic behavior or divergence.---
+
+
+---
+
+## Machine-Checked Verification and Falsifiability
+
+The core results above are formalized in Lean 4 (against a pinned Mathlib
+snapshot) under [`formal_proofs/RSSN/`](formal_proofs/RSSN/). Every push
+builds all proof files and audits their axiom footprint in CI
+([`.github/workflows/lean.yml`](.github/workflows/lean.yml)).
+
+### Claim → theorem map
+
+| Claim | Lean theorem | File |
+|---|---|---|
+| T1: triangle fractal density converges to 1/n | `RSSN.FractalDensityConvergence.triangle_density_converges` | `FractalDensityConvergence.lean` |
+| T2: reflection is an injective embedding | `RSSN.ReflectionIsomorphism.reflect_injective` | `ReflectionIsomorphism.lean` |
+| T3: triangle sits below f₃ in the fast-growing hierarchy | `RSSN.HierarchyPlacement.L3_3_triangle_below_f3` | `HierarchyPlacement.lean` |
+| T7: shape operators do not commute | `RSSN.NonCommutativity.noncommutative_at_2` | `NonCommutativity.lean` |
+| T8: Robertson uncertainty form is nontrivial | `RSSN.UncertaintyPrinciple.T8_robertson_form_nontrivial` | `UncertaintyPrinciple.lean` |
+| Triangle equals tetration at height 2 | `RSSN.Tetration.triangle_eq_tet` | `Tetration.lean` |
+
+The full audited list lives in
+[`formal_proofs/RSSN/AxiomAudit.lean`](formal_proofs/RSSN/AxiomAudit.lean).
+
+### Reproducing the verification
+
+```bash
+lake exe cache get   # fetch the Mathlib olean cache (optional, much faster)
+lake build           # compile every module under formal_proofs/
+lake env lean formal_proofs/RSSN/AxiomAudit.lean   # axiom footprint of each headline theorem
+```
+
+The toolchain is pinned by `lean-toolchain` and the dependency graph by
+`lake-manifest.json`, so verification runs against the same Mathlib
+snapshot everywhere.
+
+### What would falsify these results
+
+* **A broken proof.** Any change that invalidates a proof fails `lake build`
+  and therefore CI — the theorems cannot silently regress.
+* **An admitted or asserted result.** CI rejects admitted proofs (`sorryAx`)
+  and any custom axiom declaration. The trust base is exactly
+  `propext`, `Classical.choice`, `Quot.sound` — Lean's standard axioms,
+  plus `Lean.ofReduceBool`/`Lean.trustCompiler` for the finitely many
+  `native_decide` literal computations in `HierarchyPlacement.lean` (the
+  kernel cannot reduce those numerals; this extends trust to the Lean
+  compiler for exactly those lemmas, and the axiom audit pins where).
+* **A mis-formalized statement.** What remains to trust is that each Lean
+  statement faithfully renders the informal claim. The claim → theorem map
+  above exists precisely so this can be checked: refuting a result here
+  means exhibiting a mismatch between a theorem statement and the claim it
+  formalizes — not taking the prose on faith.
+
+### Numerical cross-check suite
+
+[`tests/`](tests/) carries an independent pytest suite that recomputes the
+lemma-chain numerics (densities, Abel iteration, entropy bridges) in
+floating point and asserts them against the closed forms — including
+deliberate falsification probes. CI runs it on every push
+([`.github/workflows/python-tests.yml`](.github/workflows/python-tests.yml)):
+
+```bash
+python3 -m pytest tests/ -q
+```

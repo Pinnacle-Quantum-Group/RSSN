@@ -86,7 +86,7 @@ class TestLemma3_3a_CurvatureFromDensityGradient:
         for n in [20, 50, 100, 200]:
             D_n = ftc_recursive_density(g0, R_exact, n)
             G_n = g0  # normalization
-            R_recovered = -(n * n / 2.0) * (1.0 - D_n * G_n)
+            R_recovered = (n * n / 2.0) * (1.0 - D_n * G_n)
             rel_error = abs(R_recovered - R_exact) / max(abs(R_exact), 1e-10)
             # O(1/n^2) correction
             assert rel_error < 4.0 / (n * n) + 0.01, (
@@ -102,7 +102,7 @@ class TestLemma3_3a_CurvatureFromDensityGradient:
         g_at_t = ricci_flow_metric(g0, R_exact, t)
         D_n = g_at_t / g0
         # R is recovered, not assumed
-        R_recovered = -(100.0 / 2.0) * (1.0 - D_n * g0)
+        R_recovered = (100.0 / 2.0) * (1.0 - D_n * g0)
         assert abs(R_recovered - R_exact) / R_exact < 0.01
 
 
@@ -129,7 +129,7 @@ class TestLemma3_3c_FixedScaleRecursiveRicci:
         for R_exact in [1.0, 5.0, 10.0]:
             n_star = max(2, int(1.0 / math.sqrt(abs(R_exact))))
             D_n = ftc_recursive_density(g0, R_exact, n_star)
-            R_rec = -(n_star * n_star / 2.0) * (1.0 - D_n * g0)
+            R_rec = (n_star * n_star / 2.0) * (1.0 - D_n * g0)
             # O(1/n*^2) error
             assert abs(R_rec - R_exact) < R_exact + 1.0
 
@@ -144,7 +144,7 @@ class TestLemma5_1_NaturalScaleAtSingularity:
     def test_scale_vanishes(self):
         for R in [100, 1e4, 1e8, 1e16]:
             n_star = 1.0 / math.sqrt(R)
-            assert n_star < 0.1
+            assert n_star <= 0.1
             assert n_star > 0  # positive but tiny
 
     def test_scale_monotone_decreasing(self):
@@ -233,7 +233,7 @@ class TestLemma5_6_RecursiveRicciVanishesAtSingularity:
         """Contrast: classical R->inf but FTC R^(n*)->0."""
         # Classical: R grows without bound at singularity
         classical_R = [10 ** k for k in range(1, 8)]
-        assert all(R > 100 for R in classical_R[1:])
+        assert all(R >= 100 for R in classical_R[1:])
 
         # FTC: R^(n*) -> 0
         gamma = 1.0

@@ -208,7 +208,13 @@ class TestGap3_CurvatureConvergence:
         # Option B gives finite, controlled error at every point
         g0 = 1.0
         for R in [0.5, 5.0, 50.0]:
-            n = max(2, int(1.0 / math.sqrt(R)))
+            # Fixed scale must satisfy n > sqrt(2R) so that the sampled
+            # metric g0 - 2R/n^2 (hence the density) stays positive; the
+            # flow *time* t = 1/n^2 decreases as curvature increases
+            # (L3_3b_scale_decreases_with_curvature), i.e. n grows ~ sqrt(R).
+            # The old n = int(1/sqrt(R)) shrank n instead, driving D to -1.5
+            # at R = 5.
+            n = max(2, math.ceil(math.sqrt(2.0 * R)) + 1)
             D = ftc_recursive_density(g0, R, n)
             assert math.isfinite(D)
             assert 0 < D <= 1.0 + 1e-10

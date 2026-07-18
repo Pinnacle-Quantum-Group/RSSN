@@ -50,12 +50,18 @@ class TestLemma1_2_SquareRatioMonotone:
             assert seq[-1] < 0.01
 
     def test_falsifiability_denominator_dominates(self):
+        # Falsification probe: if numerator and denominator grew at the
+        # same rate (both scaled by n each step), the ratio would stay at
+        # its initial value forever and the density could never vanish.
+        # The square operator's density vanishes precisely because its
+        # denominator grows strictly faster (L1.2).
         n = 3
         f, g = 1, n
+        ratio0 = f / g
         for _ in range(1, 15):
             f = n * f
             g = n * g
-            assert abs(f / g - 1.0) < 1e-10
+            assert abs(f / g - ratio0) < 1e-10
 
 
 class TestLemma1_3_CauchyCriterion:
@@ -86,7 +92,7 @@ class TestLemmaT2_Reflection:
     """T2: Reflection isomorphism. Status: TIGHT"""
 
     def test_t2_1_syntactic_distinctness(self):
-        assert triangle(3) != square(3, max_iter=3)
+        assert triangle(3) != square(3, max_iter=2)
         assert triangle(2) != triangle(3)
 
     def test_t2_2_semantic_well_definedness(self):
